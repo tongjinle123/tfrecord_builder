@@ -1,4 +1,4 @@
-A class for build tfrecord file and build dataloader using tf.data
+A class for build tfrecord file and build dataloader using tf.data which can be used for both tensorflow and pytorch 
 requirements:
 
 	tensorflow==2.0
