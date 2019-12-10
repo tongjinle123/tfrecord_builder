@@ -35,7 +35,7 @@ class RecordOperator:
         return serialized_example
 
     def encode_feature(self, feature, dtype, shape_type):
-        if shape_type == 'var' and dtype in ['float32', 'float64', 'int64']:
+        if shape_type == 'var' and dtype in ['float32', 'int64']:
             return tf.train.Feature(bytes_list=tf.train.BytesList(value=[feature.tostring()]))
         elif shape_type in [1,2] and dtype == 'int64':
             return tf.train.Feature(int64_list=tf.train.Int64List(value=feature.tolist()))
