@@ -22,7 +22,6 @@ class RecordOperator:
     def encode_example(self, example):
         encoded_example = {}
         for feature in self.config.keys():
-            print(feature)
             assert feature in example
             assert isinstance(example[feature], np.ndarray)
             assert example[feature].dtype == self.config[feature]['dtype']
@@ -37,7 +36,7 @@ class RecordOperator:
     def encode_feature(self, feature, dtype, shape_type):
         if shape_type == 'var' and dtype in ['float32', 'float64', 'int64']:
             return tf.train.Feature(bytes_list=tf.train.BytesList(value=[feature.tostring()]))
-        elif shape_type in [1,2] and dtype == 'int64':
+        elif shape_type in [1, 2] and dtype == 'int64':
             return tf.train.Feature(int64_list=tf.train.Int64List(value=feature.tolist()))
 
     def build_tfrecord_file(self):
@@ -75,14 +74,22 @@ class RecordOperator:
 
     def build_parser(self):
         def parse_func(sample):
-            parse_dict = {}
-            for feature_name, feature_sub_config in self.config.items():
-                parse_dict[feature_name] = self.parse_func(feature_sub_config['dtype'], feature_sub_config['shape_type'])
+            parse_dict = {feature_name: self.parse_func(feature_sub_config['dtype'], feature_sub_config['shape_type'])
+                          for feature_name, feature_sub_config
+                          in self.config.items()}
+            # parse_dict = {}
+            # for feature_name, feature_sub_config in self.config.items():
+            #     parse_dict[feature_name] = self.parse_func(feature_sub_config['dtype'], feature_sub_config['shape_type'])
+
             parsed_sample = tf.io.parse_single_example(sample, parse_dict)
 
-            result = {}
-            for feature_name, feature_sub_config in self.config.items():
-                result[feature_name] = self.decode_func(parsed_sample[feature_name], feature_sub_config['dtype'], feature_sub_config['shape_type'])
+
+            result = {feature_name:self.decode_func(parsed_sample[feature_name], feature_sub_config['dtype'], feature_sub_config['shape_type'])
+                      for feature_name, feature_sub_config
+                      in self.config.items()}
+            # result = {}
+            # for feature_name, feature_sub_config in self.config.items():
+            #     result[feature_name] = self.decode_func(parsed_sample[feature_name], feature_sub_config['dtype'], feature_sub_config['shape_type'])
 
             for feature_name, feature_sub_config in self.config.items():
                 if feature_sub_config['shape_type'] == 'var':
@@ -92,10 +99,11 @@ class RecordOperator:
             return result
         return parse_func
 
-    def build_data_loader(self, num_parallel_calls, num_epoch, batch_size):
+    def build_data_loader(self, num_epoch, batch_size):
         parser = self.build_parser()
         data_loader = tf.data.TFRecordDataset(self.record_file)
-        data_loader = data_loader.map(parser, num_parallel_calls=num_parallel_calls)
+        data_loader = data_loader.map(parser, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+        data_loader = data_loader.shuffle(batch_size * 4)
         data_loader = data_loader.repeat(num_epoch)
         padded_shapes = {}
         for feature_name, feature_sub_config in self.config.items():
@@ -107,9 +115,9 @@ class RecordOperator:
             else:
                 assert feature_name[:-6] in self.config
                 padded_shapes[feature_name] = [None]
-        print(padded_shapes)
         #padded_shapes = {'feature': [None, None], 'feature_shape': [None], 'target': [None], 'target_shape': [None]}
         data_loader = data_loader.padded_batch(batch_size, padded_shapes=padded_shapes)
+        data_loader = data_loader.prefetch(batch_size)
         return data_loader
 
 
@@ -133,7 +141,8 @@ if __name__ == '__main__':
     operator = RecordOperator(examples, config_file, record_file)
     operator.encode_example(examples[0])
     operator.build_tfrecord_file()
-    dataloader = operator.build_data_loader(num_parallel_calls=2, num_epoch=3, batch_size=3)
-    for i in dataloader:
-        break
+    dataloader = operator.build_data_loader(num_epoch=1000000, batch_size=8)
+    for i in tqdm(dataloader):
+        pass
+
 
