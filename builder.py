@@ -128,8 +128,8 @@ if __name__ == '__main__':
         'target_shape': np.array(list(np.array([1, 2, 3, 4, 6], dtype='int32').shape), dtype='int64')
     }
     examples = [examples1, examples2]
-    config_file = 'src/utils/tfrecord_config.yaml'
-    record_file = 'data/tfrecords/record_test.tfrecord'
+    config_file = 'tfrecord_config.yaml'
+    record_file = 'record_test.tfrecord'
     operator = RecordOperator(examples, config_file, record_file)
     operator.encode_example(examples[0])
     operator.build_tfrecord_file()
