@@ -6,7 +6,9 @@ requirements:
 	numpy
 	tqdm
 usage: as is shown in the builder.py, you just need build a list of example using numpy and config the yaml file.
+
 dtype:data type.in [float32 and int64]
+
 shape_type: feature shape in ['var', 1, 2], var means the shape variable , 1 and 2 means the shape is fixed and have shape num 1 or 2. 
 
     examples1 = {
