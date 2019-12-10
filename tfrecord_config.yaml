@@ -1,0 +1,16 @@
+feature:
+  shape_type: var
+  dtype: float32
+
+feature_shape:
+  shape_type: 2
+  dtype: int64
+
+target:
+  shape_type: var
+  dtype: int64
+
+target_shape:
+  shape_type: 1
+  dtype: int64
+
