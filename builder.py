@@ -34,7 +34,7 @@ class RecordOperator:
         return serialized_example
 
     def encode_feature(self, feature, dtype, shape_type):
-        if shape_type == 'var' and dtype in ['float32', 'float64', 'int64']:
+        if shape_type == 'var' and dtype in ['float32', 'int64']:
             return tf.train.Feature(bytes_list=tf.train.BytesList(value=[feature.tostring()]))
         elif shape_type in [1, 2] and dtype == 'int64':
             return tf.train.Feature(int64_list=tf.train.Int64List(value=feature.tolist()))
@@ -136,8 +136,8 @@ if __name__ == '__main__':
         'target_shape': np.array(list(np.array([1, 2, 3, 4, 6], dtype='int32').shape), dtype='int64')
     }
     examples = [examples1, examples2]
-    config_file = 'src/utils/tfrecord_config.yaml'
-    record_file = 'data/tfrecords/record_test.tfrecord'
+    config_file = 'tfrecord_config.yaml'
+    record_file = 'record_test.tfrecord'
     operator = RecordOperator(examples, config_file, record_file)
     operator.encode_example(examples[0])
     operator.build_tfrecord_file()
